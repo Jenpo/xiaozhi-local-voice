@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.xz.tts</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Volumes/S/AI-Runtimes/xz/bin/run-tts.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>XZ_TTS_PORT</key><string>8880</string>
+    <key>XZ_TTS_ENGINE</key><string>piper</string>
+    <key>XZ_TTS_PIPER_VOICE</key><string>/Volumes/S/AI-Runtimes/xz/piper/en_US-amy-medium.onnx</string>
+    <key>XZ_TTS_TOKEN</key><string>REPLACE_WITH_YOUR_TTS_TOKEN</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+</dict>
+</plist>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.xz.server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Volumes/S/AI-Runtimes/xz/bin/run-server.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NO_PROXY</key><string>localhost,127.0.0.1,::1,192.168.31.0/24,192.168.0.0/16,10.0.0.0/8</string>
+    <key>no_proxy</key><string>localhost,127.0.0.1,::1,192.168.31.0/24,192.168.0.0/16,10.0.0.0/8</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+</dict>
+</plist>

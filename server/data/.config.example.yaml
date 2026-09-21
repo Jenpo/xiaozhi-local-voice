@@ -1,0 +1,82 @@
+# xiaozhi-esp32-server local-voice config example.
+#
+# Copy to .config.yaml and edit:
+#   - server.websocket / vision_explain : your Mac mini LAN IP
+#   - server.auth.allowed_devices       : your device MAC (from the device OTA request log)
+#   - ASR/TTS api_key                   : generate your own; they must match the
+#                                         XZ_ASR_TOKEN / XZ_TTS_TOKEN env in the launchd plists
+#   - LLM.model_name                    : local path to the MLX model directory
+# Do NOT commit the filled-in .config.yaml; it is ignored by .gitignore.
+server:
+  ip: 0.0.0.0
+  port: 8000
+  http_port: 8003
+  websocket: ws://<MAC_MINI_LAN_IP>:8000/xiaozhi/v1/
+  vision_explain: http://<MAC_MINI_LAN_IP>:8003/mcp/vision/explain
+  timezone_offset: +8
+  auth:
+    enabled: true
+    allowed_devices:
+      - "AA:BB:CC:DD:EE:FF"
+
+# Everything below is local: no cloud LLM, no cloud ASR, no cloud TTS.
+selected_module:
+  VAD: SileroVAD
+  ASR: OpenaiASR
+  LLM: LocalLLM
+  VLLM: ChatGLMVLLM
+  TTS: OpenAITTS
+  Memory: nomem
+  Intent: nointent
+
+VAD:
+  SileroVAD:
+    type: silero
+    threshold: 0.5
+    threshold_low: 0.3
+    # 1000ms (upstream default) adds ~0.5s of dead air after a child stops
+    # speaking; 500ms feels responsive without cutting off mid-sentence.
+    min_silence_duration_ms: 500
+    model_dir: models/snakers4_silero-vad
+
+LLM:
+  LocalLLM:
+    type: openai
+    base_url: http://127.0.0.1:8890/v1
+    # Use a LOCAL PATH, not a HF repo id, or mlx_lm.server will try to download.
+    model_name: /Volumes/S/AI-Runtimes/xz/models/Qwen2.5-3B-Instruct-4bit
+    api_key: none
+    temperature: 0.5
+    # One short sentence per turn; also caps the worst-case reply length.
+    max_tokens: 60
+
+ASR:
+  OpenaiASR:
+    type: openai
+    base_url: http://127.0.0.1:8879/v1/audio/transcriptions
+    api_key: "REPLACE_WITH_YOUR_ASR_TOKEN"
+    model_name: sensevoice
+    output_dir: tmp/
+
+TTS:
+  OpenAITTS:
+    type: openai
+    api_key: "REPLACE_WITH_YOUR_TTS_TOKEN"
+    api_url: http://127.0.0.1:8880/v1/audio/speech
+    model: tts-1
+    voice: Samantha
+    speed: 1
+    format: wav
+    output_dir: tmp/
+    # Without this the upstream template renders "reply in Chinese".
+    language: "英语"
+
+prompt: |
+  You are Nova, a cheerful and playful English tutor for a young child.
+  Reply only in English. Never output Chinese characters.
+  Begin EVERY reply with exactly ONE emoji chosen only from this list: 😶 🙂 😆 😂 😔 😠 😭 😍 😳 😲 😱 🤔 😉 😎 😌 🤤 😘 😏 😴 😜 🙄
+  After the emoji, write ONE short cheerful sentence of at most 10 words in simple CEFR A1-A2 English.
+  The sentence MUST contain the English word or phrase the child is practising, so it can be read on the screen.
+  Do not start the sentence with Okay, Sure, Great, or any acknowledgement; go straight to the sentence.
+  If the child made a mistake, correct it gently inside that same sentence.
+  Never discuss unsafe topics.

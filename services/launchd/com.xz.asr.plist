@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.xz.asr</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Volumes/S/AI-Runtimes/xz/bin/run-asr.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>XZ_ASR_PORT</key><string>8879</string>
+    <key>XZ_ASR_LANG</key><string>en</string>
+    <key>XZ_ASR_TOKEN</key><string>REPLACE_WITH_YOUR_ASR_TOKEN</string>
+    <key>XZ_ASR_MODEL_DIR</key><string>/Volumes/S/AI-Runtimes/xz/models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+</dict>
+</plist>
