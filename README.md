@@ -5,6 +5,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-macOS%20Apple%20Silicon-black.svg)](#部署)
 [![latency](https://img.shields.io/badge/round--trip-1~2s-brightgreen.svg)](#实测收益)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa.svg?logo=githubsponsors)](#支持这个项目)
 [![upstream](https://img.shields.io/badge/server-xinnan--tech%2Fxiaozhi--esp32--server-blue.svg)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
 > Turn a slow cloud-based AI companion toy into a **fully local, 1–2 second** voice loop on a single Apple Silicon Mac — ASR, LLM and TTS all on-device, no paid API. Built for kids practising spoken English, where "fast enough to feel like a conversation" is the whole product.
@@ -143,6 +144,21 @@ done
 - [ ] 补 `assets/device.jpg` 实机照片与一段对话录像
 - [ ] 增加 Linux（含 CUDA）部署路径
 - [ ] 把看门狗从「探测延迟」升级为「探测漂移趋势」
+
+## 支持这个项目
+
+这个仓库是免费、开源的。如果它帮你把一台吃灰的 AI 玩具救活了，或者省下了你几天排查时间，可以在 GitHub Sponsors 上支持后续维护：
+
+**👉 [github.com/sponsors/Jenpo](https://github.com/sponsors/Jenpo)**
+
+赞助会用在：新硬件的验证（例如 ESP32-S3 带屏板做动画表情）、回归测试、以及把部署流程做成一键脚本。
+
+不方便赞助也没关系，这些同样有价值：
+
+- ⭐ Star 这个仓库，让更多被「AI 玩具太慢」困住的人搜到它
+- 🐛 提 Issue 报告你遇到的设备型号和复现步骤（尤其是别的厂商白牌板）
+- 💡 分享你机器上的实测数字，帮我们补齐不同硬件的基线
+- 🛠️ 提交 PR：Linux/CUDA 部署路径、更多 TTS 引擎、一键安装脚本都欢迎
 
 ## 许可
 
