@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 474" width="960" height="474" font-family="SFMono-Regular,Menlo,Consolas,monospace">
+<rect width="960" height="474" rx="12" fill="#0d1117"/>
+<circle cx="28" cy="28" r="7" fill="#ff5f56"/><circle cx="50" cy="28" r="7" fill="#ffbd2e"/><circle cx="72" cy="28" r="7" fill="#27c93f"/>
+<text x="96" y="33" font-size="12.5" fill="#8b949e">xiaozhi-local-voice — 服务健康检查（实测输出）</text>
+<line x1="0" y1="50" x2="960" y2="50" stroke="#21262d"/>
+<text x="26" y="78" font-size="13" fill="#7ee787">$ ssh mac-mini &#x27;for p in 8879 8880 8890; do curl -s -o /dev/null \</text>
+<text x="26" y="102" font-size="13" fill="#7ee787">      -w &quot;port $p -&gt; HTTP %{http_code} (%{time_total}s)\n&quot; http://127.0.0.1:$p/health; done&#x27;</text>
+<text x="26" y="126" font-size="13" fill="#c9d1d9">port 8879 -&gt; HTTP 200  (0.043s)   # ASR   sherpa-onnx SenseVoice</text>
+<text x="26" y="150" font-size="13" fill="#c9d1d9">port 8880 -&gt; HTTP 200  (0.081s)   # TTS   常驻 Piper</text>
+<text x="26" y="174" font-size="13" fill="#c9d1d9">port 8890 -&gt; HTTP 200  (0.084s)   # LLM   mlx_lm Qwen2.5-3B</text>
+<text x="26" y="222" font-size="13" fill="#7ee787">$ lsof -nP -iTCP -sTCP:LISTEN | grep -E &#x27;:8000|:8003|:88&#x27;</text>
+<text x="26" y="246" font-size="13" fill="#c9d1d9">python3.1  *:8000    # xiaozhi-esp32-server (WebSocket)</text>
+<text x="26" y="270" font-size="13" fill="#c9d1d9">python3.1  *:8003    # HTTP / OTA</text>
+<text x="26" y="294" font-size="13" fill="#c9d1d9">Python     *:8879    # ASR</text>
+<text x="26" y="318" font-size="13" fill="#c9d1d9">python3.1  *:8880    # TTS</text>
+<text x="26" y="342" font-size="13" fill="#c9d1d9">Python     *:8890    # LLM</text>
+<text x="26" y="390" font-size="13" fill="#7ee787">$ time curl -s -o /dev/null -X POST http://127.0.0.1:8890/v1/chat/completions \</text>
+<text x="26" y="414" font-size="13" fill="#7ee787">        -d &#x27;{&quot;model&quot;:&quot;/Volumes/S/AI-Runtimes/xz/models/Qwen2.5-3B-Instruct-4bit&quot;,&quot;max_tokens&quot;:16, ...}&#x27;</text>
+<text x="26" y="438" font-size="13" fill="#a7f3d0">0.00s user  0.00s system  0% cpu  1.339 total   # 本地 LLM 一次请求</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="960" height="520" fill="#ffffff"/>
+<text x="40" y="46" font-size="20" font-weight="700" fill="#111827">单轮延迟：改造前 vs 改造后（对数刻度，单位：秒）</text>
+<rect x="40" y="70" width="14" height="14" rx="3" fill="#ef4444"/>
+<text x="62" y="82" font-size="13" fill="#374151">改造前（NAS + 云端）</text>
+<rect x="290" y="70" width="14" height="14" rx="3" fill="#22c55e"/>
+<text x="312" y="82" font-size="13" fill="#374151">改造后（Mac mini 本地）</text>
+<line x1="200.0" y1="100" x2="200.0" y2="440" stroke="#e5e7eb" stroke-width="1"/>
+<text x="200.0" y="462" font-size="12" fill="#9ca3af" text-anchor="middle">0.1s</text>
+<line x1="426.7" y1="100" x2="426.7" y2="440" stroke="#e5e7eb" stroke-width="1"/>
+<text x="426.7" y="462" font-size="12" fill="#9ca3af" text-anchor="middle">1s</text>
+<line x1="653.3" y1="100" x2="653.3" y2="440" stroke="#e5e7eb" stroke-width="1"/>
+<text x="653.3" y="462" font-size="12" fill="#9ca3af" text-anchor="middle">10s</text>
+<line x1="880.0" y1="100" x2="880.0" y2="440" stroke="#e5e7eb" stroke-width="1"/>
+<text x="880.0" y="462" font-size="12" fill="#9ca3af" text-anchor="middle">100s</text>
+<line x1="200" y1="440" x2="880" y2="440" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="40" y="138" font-size="14" font-weight="600" fill="#111827">ASR 语音识别</text>
+<rect x="200.0" y="116" width="486.5" height="22" rx="4" fill="#ef4444"/>
+<text x="694.5" y="132" font-size="12.5" font-weight="600" fill="#b91c1c">14s</text>
+<rect x="200.0" y="146" width="39.9" height="22" rx="4" fill="#22c55e"/>
+<text x="247.9" y="162" font-size="12.5" font-weight="600" fill="#15803d">0.15s</text>
+<text x="40" y="222" font-size="14" font-weight="600" fill="#111827">LLM 首句</text>
+<rect x="200.0" y="200" width="385.1" height="22" rx="4" fill="#ef4444"/>
+<text x="593.1" y="216" font-size="12.5" font-weight="600" fill="#b91c1c">5s</text>
+<rect x="200.0" y="230" width="123.3" height="22" rx="4" fill="#22c55e"/>
+<text x="331.3" y="246" font-size="12.5" font-weight="600" fill="#15803d">0.35s</text>
+<text x="40" y="306" font-size="14" font-weight="600" fill="#111827">TTS 每句</text>
+<rect x="200.0" y="284" width="363.1" height="22" rx="4" fill="#ef4444"/>
+<text x="571.1" y="300" font-size="12.5" font-weight="600" fill="#b91c1c">4s</text>
+<rect x="200.0" y="314" width="57.9" height="22" rx="4" fill="#22c55e"/>
+<text x="265.9" y="330" font-size="12.5" font-weight="600" fill="#15803d">0.18s</text>
+<text x="40" y="390" font-size="14" font-weight="600" fill="#111827">每轮合计</text>
+<rect x="200.0" y="368" width="511.2" height="22" rx="4" fill="#ef4444"/>
+<text x="719.2" y="384" font-size="12.5" font-weight="600" fill="#b91c1c">18s</text>
+<rect x="200.0" y="398" width="266.6" height="22" rx="4" fill="#22c55e"/>
+<text x="474.6" y="414" font-size="12.5" font-weight="600" fill="#15803d">1.5s</text>
+<text x="40" y="500" font-size="12" fill="#6b7280">数据来源：同一台 Mac mini 上的隔离实测；改造前 ASR 为 NAS Celeron，更早版本还叠加云端 TTS。</text>
+</svg>

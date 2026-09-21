@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="960" height="420" fill="#ffffff"/>
+<rect x="360" y="40" width="240" height="300" rx="28" fill="#111827"/>
+<rect x="378" y="86" width="204" height="176" rx="12" fill="#1f6feb"/>
+<text x="480" y="150" font-size="52" text-anchor="middle">😄</text>
+<text x="480" y="200" font-size="19" font-weight="600" fill="#ffffff" text-anchor="middle">The elephant</text>
+<text x="480" y="226" font-size="19" font-weight="600" fill="#ffffff" text-anchor="middle">is really big!</text>
+<circle cx="480" cy="300" r="14" fill="#374151"/>
+<text x="480" y="372" font-size="13" fill="#6b7280" text-anchor="middle">设备屏幕示意（非实拍）：表情 + 一句含目标单词的英文</text>
+<text x="480" y="394" font-size="12" fill="#9ca3af" text-anchor="middle">实拍照片请放到 assets/device.jpg 并替换本图</text>
+</svg>

@@ -1,99 +1,149 @@
 # xiaozhi-local-voice
 
-把 xiaozhi（小智 / xiaozhi-esp32）语音助手从「云端 + 共享大模型 + 慢主机」改成**全本地、低延迟**的语音链路，用于儿童英语陪练这类需要「像对话一样快」的场景。
+**把 AI 玩具的语音链路整个搬回家里：15—20 秒的等待，压到 1—2 秒。**
 
-一句话目标：孩子说完话到机器人开口，从 **15—20 秒压到 1—2 秒**。
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![platform](https://img.shields.io/badge/platform-macOS%20Apple%20Silicon-black.svg)](#部署)
+[![latency](https://img.shields.io/badge/round--trip-1~2s-brightgreen.svg)](#实测收益)
+[![upstream](https://img.shields.io/badge/server-xinnan--tech%2Fxiaozhi--esp32--server-blue.svg)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
-## 为什么需要它
+> Turn a slow cloud-based AI companion toy into a **fully local, 1–2 second** voice loop on a single Apple Silicon Mac — ASR, LLM and TTS all on-device, no paid API. Built for kids practising spoken English, where "fast enough to feel like a conversation" is the whole product.
 
-原版做法里，语音识别（ASR）跑在一台双核 Intel Celeron 的 NAS 上，大模型走局域网里共享的推理服务，语音合成走微软云端 EdgeTTS。每个环节单独看都不算错，拼在一起就是十几秒的等待，孩子早就走神了。
+![项目封面](assets/cover.jpg)
 
-本项目的判断是：**这类玩具慢的通常不是模型，而是链路落在哪台机器上。**
+## 这是在解决什么问题
 
-## 架构
+几十块到一两百块的 AI 玩具机器人（xiao-zhi / xiaozhi-esp32 生态）大多是这样的默认配置：语音识别跑在一台低功耗 NAS 上，回复走局域网里共享的大模型服务，语音合成调用云端 TTS。
 
-```
-设备 (ESP32-C3, MAC 见 config)
-  ├─ OTA  http://<旧服务器IP>:18003/xiaozhi/ota/      # 固件硬编码，改不了
-  │        └─ 应答 ws://<Mac mini IP>:8000/xiaozhi/v1/
-  └─ WebSocket → Mac mini:8000   (xiaozhi-esp32-server)
-        ├─ ASR  OpenaiASR → http://127.0.0.1:8879   sherpa-onnx SenseVoice (language=en)
-        ├─ LLM  LocalLLM  → http://127.0.0.1:8890   mlx_lm.server + Qwen2.5-3B-4bit
-        ├─ TTS  OpenAITTS → http://127.0.0.1:8880   常驻 Piper
-        └─ VAD  SileroVAD  min_silence_duration_ms=500
-```
+每一环单独看都能work，拼在一起的结果是：孩子说完一句话，要等 **15—20 秒**才听到回应。对一个五六岁的孩子来说，这个等待时间已经足够让他转身走开。
 
-- 服务端用上游 [`xinnan-tech/xiaozhi-esp32-server`](https://github.com/xinnan-tech/xiaozhi-esp32-server)，本项目只带配置和补丁，不带厂商源码。
-- 所有服务都在同一台 Apple Silicon Mac 上，凭 launchd 常驻。
-- 设备固件把 OTA 地址写死成老服务器，所以那台机器上必须留一个极简 OTA 应答（`gateway/`），它不在音频链路上。
+这个项目做的事很具体：**把整条语音链路搬到一台 Apple Silicon Mac 上，让每一段都只剩几十到几百毫秒。** 不换更贵的硬件，不换更大的模型，只是把每一环放到算力匹配的地方，并把几个隐藏的固定开销去掉。
 
 ## 实测收益
 
+![延迟对比](assets/latency.svg)
+
 | 环节 | 改造前 | 改造后 |
 |---|---|---|
-| ASR 语音识别 | 10—18 s（NAS Celeron） | ~0.15 s |
-| LLM 首句 | 3—15 s | 0.3—1 s |
-| TTS 语音合成 | 3—5 s/句 × 3 句 | 0.15—0.2 s/句 |
-| 每轮合计 | **15—20 s** | **1—2 s** |
+| ASR 语音识别 | 10—18 s（NAS 双核 Celeron） | **~0.15 s** |
+| LLM 首句 | 3—15 s（共享大模型 + 未关思考） | **0.3—1 s** |
+| TTS 语音合成 | 3—5 s/句 × 3 句（云端） | **0.15—0.2 s/句** |
+| **每轮合计** | **15—20 s** | **1—2 s** |
 
-同一个 SenseVoice 小模型，NAS 上 10.7 s，Apple M4 上 0.05—0.19 s。
+几个反直觉的实测结论：
 
-## 目录
+- **慢的不是大模型，是 ASR 跑错了机器。** 同一个 SenseVoice 小模型，在 NAS 上要 10.7 秒，在 M4 上只要 0.05—0.19 秒——差约 100 倍。模型不用换，换算力就够。
+- **换更小的 LLM 不会更快。** M4 本地 Qwen3-8B 要 2.5—3.4 秒，反而慢于共享的 GLM-5.3-Flash（1.7—2.9 秒）。真正拖时间的是「没关思考模式」和「每轮重新计算 6000 多字符的系统提示词」。
+- **TTS 音质和速度是两笔账。** 常驻 Piper 每句 0.15—0.2 秒，macOS `say` 约 0.7 秒，Kokoro 音质最好但要 1.1—2.3 秒。对话场景里，快比好听更重要。
 
-```
-services/
-  bin/asr_service.py      OpenAI 兼容的 ASR 端点（sherpa-onnx SenseVoice）
-  bin/tts_service.py      OpenAI 兼容的 TTS 端点（piper / say / kokoro）
-  bin/watchdog-llm.sh     本地 LLM 健康看门狗
-  bin/run-*.sh            launchd 启动包装（日志写外接卷，见「坑」）
-  launchd/com.xz.*.plist  5 个常驻服务
-server/
-  agent-base-prompt.txt   精简系统提示词（替换上游 6326 字符版本）
-  data/.config.example.yaml
-gateway/
-  ota.js                  极简 OTA 应答
-  gateway.js              OTA 应答 + WebSocket TCP 转发
-docs/
-  LOG.md                  完整修复记录（逐层根因 + 回滚）
-  SKILL.md                运维技能：常用命令、排查表、延迟预算
-```
+## 孩子在用的时候是什么样
+
+![使用场景](assets/scene.jpg)
+
+屏幕是这块板子唯一的「输出面」。固件只提供三个显示通道：情绪表情、孩子的原话（STT）、机器人的回复（TTS）。所以我们把提示词改成：**每次回复 = 1 个情绪表情 + 1 句不超过 10 个词、且必须包含当前目标单词的英文短句**。
+
+于是屏幕上会同时出现：一张笑脸、一句 "The elephant is really big!"，以及孩子刚刚说的那句话。
+
+![设备屏幕示意](assets/device.svg)
+
+*上图为屏幕布局示意；Emoji 由服务端在送 TTS 前剥离，只走显示通道，不会影响朗读内容，也不会拖慢速度。*
+
+## 架构
+
+![架构图](assets/architecture.svg)
+
+- **服务端**用上游 [`xinnan-tech/xiaozhi-esp32-server`](https://github.com/xinnan-tech/xiaozhi-esp32-server)，本仓库只提供配置与补丁，不复制厂商源码。
+- **ASR / LLM / TTS** 三个服务用 OpenAI 兼容协议暴露，全部由 launchd 常驻在同一台 Mac 上。
+- **OTA 网关**：这类白牌设备的固件把服务器地址写死在板子里，所以旧服务器上必须留一个极简 OTA 应答把设备引到新主机。它约 40MB，不在音频链路上。
 
 ## 部署
 
-1. 安装上游服务端到 `/Volumes/S/AI-Runtimes/xz/server`（或改 plist / run 脚本里的路径）。
-2. 准备模型（体积大，不进仓库）：SenseVoice、Qwen2.5-3B-Instruct-4bit（MLX）、Piper `en_US-amy-medium`、SileroVAD。
-3. `cp server/data/.config.example.yaml server/data/.config.yaml`，填入本机 IP、设备 MAC、自己生成的 ASR/TTS token，让 token 与 plist 里的 `XZ_ASR_TOKEN` / `XZ_TTS_TOKEN` 一致。
-4. 按需修改 `services/run-*.sh` 里的路径，`launchctl bootstrap` 加载 5 个 plist。
-5. 老服务器上跑 `gateway/gateway.js`（Node），或用 Docker：
-   ```bash
-   docker run -d --name xz-ota -p 18000:18000 -p 18003:18003 \
-     -e XZ_PUBLIC_HOST=<旧服务器IP> -e XZ_UPSTREAM=<Mac mini IP>:8000 \
-     -v $PWD/gateway:/app -w /app node:22-alpine node gateway.js
-   ```
-6. 机器人断电重启，拉一次 OTA 后应直连 Mac mini。
+```bash
+git clone https://github.com/Jenpo/xiaozhi-local-voice
+cd xiaozhi-local-voice
 
-## 调优要点
+# 1) 安装上游服务端（建议放在外接卷，例如 /Volumes/S/AI-Runtimes/xz/server）
+git clone https://github.com/xinnan-tech/xiaozhi-esp32-server
 
-- **ASR 换机器**：模型不用换，换算力就快约 100 倍；并把语言固定为 `en`，避免多语种自动检测把英文听成中文。
-- **关思考模式**：远端 vLLM 只认 `chat_template_kwargs.enable_thinking=false`（顶层 `enable_thinking` 无效）。
-- **精简提示词**：6326 字符 → 118 字符，首 token 从 1.5—1.8 s 降到 0.31 s；同时去掉模板里那句「必须用中文回答」。
-- **VAD**：`min_silence_duration_ms` 默认 1000 ms，改 500 ms 省 0.5 s。
-- **TTS**：常驻 Piper 0.15—0.2 s/句（每次冷启动要 0.65—0.88 s，必须常驻）；`say` ~0.7 s；Kokoro ~1.2—2.3 s 但音质最好。
+# 2) 准备模型（体积大，不进仓库）
+#    SenseVoice / Qwen2.5-3B-Instruct-4bit (MLX) / Piper en_US-amy-medium / SileroVAD
 
-## 坑
+# 3) 写配置
+cp server/data/.config.example.yaml server/data/.config.yaml
+#   填：本机局域网 IP、设备 MAC、自己生成的 ASR/TTS token
+
+# 4) 加载常驻服务
+for f in services/launchd/com.xz.*.plist; do cp "$f" ~/Library/LaunchAgents/; done
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.xz.server.plist
+#   asr / tts / llm / watchdog 同理
+
+# 5) 旧服务器上跑 OTA 网关（或用 Docker）
+docker run -d --name xz-ota -p 18000:18000 -p 18003:18003 \
+  -e XZ_PUBLIC_HOST=<旧服务器IP> -e XZ_UPSTREAM=<Mac mini IP>:8000 \
+  -v $PWD/gateway:/app -w /app node:22-alpine node gateway.js
+```
+
+改完断电重启机器人一次，它会重新拉 OTA 并直连新主机。
+
+## 实测证据
+
+![健康检查](assets/terminal.svg)
+
+三个服务健康检查全 200，延迟分别是 0.043s / 0.081s / 0.084s；本地 LLM 一次完整请求约 1.3 秒。这些数字可以在你自己的机器上一条命令复现：
+
+```bash
+for p in 8879 8880 8890; do
+  curl -s -o /dev/null -w "port $p -> %{http_code} (%{time_total}s)\n" http://127.0.0.1:$p/health
+done
+```
+
+## 踩过的坑（都写进排查表了）
 
 | 症状 | 真正原因 |
 |---|---|
-| 显示「连接中」/「我们稍后再试吧」 | 多半不是网络，而是本地 LLM 服务漂移（长时间运行后单核 100%、返回 502）；已用看门狗修 |
-| `curl` 200、应用报 502 | Mac 系统代理被 httpx/openai SDK 读取，连 `127.0.0.1` 也走代理；给服务加 `NO_PROXY` |
-| launchd 启动即 exit 78 | launchd 不能把日志写到外接卷；用外接卷上的 `run-*.sh` 重定向 |
-| mlx_lm.server 去 HuggingFace 拉模型 | `model_name` 必须写本地路径 |
-| 精简提示词后屏幕不显示表情 | emoji 指令被一起删了，自定义 prompt 要补白名单前缀 |
+| 显示「连接中」/「我们稍后再试吧」 | 大概率不是网络，而是本地 LLM 服务跑两小时后漂移（单核 100%、返回 502）。已用每 180 秒探测一次、异常自动重启的看门狗兜住 |
+| `curl` 返回 200，应用却报 502 | Mac 的系统代理被 httpx / openai SDK 读取，连 `127.0.0.1` 也被送去代理。给服务进程加 `NO_PROXY` |
+| launchd 启动即 exit 78 | launchd 不能把日志写到外接卷，改用外接卷上的启动脚本重定向 |
+| mlx_lm.server 启动时去 HuggingFace 拉模型 | `model_name` 必须写本地路径，不能写 repo id |
+| 精简提示词后屏幕不显示表情 | emoji 指令被一起删掉了，自定义 prompt 要补回白名单前缀 |
 
-## 硬件限制
+## 硬件上的现实边界
 
-测试设备是白牌 `zuowei-c3-lcd` 板（ESP32-C3、8 MB flash、**无 PSRAM**、ST7789 SPI 屏），固件为上游官方固件二次编译。它只能显示静态 emoji + 文本，**跑不动官方的 EmoteDisplay 动画**；要动画需要换官方支持的 ESP32-S3（N16R8，带 PSRAM）带屏板，再改一下 config 里的设备 MAC 即可接入同一台服务器。
+测试用的是一块白牌 `zuowei-c3-lcd` 板：ESP32-C3、8MB flash、**没有 PSRAM**、ST7789 SPI 小屏，固件是上游官方固件二次编译。
+
+结论很明确：**这块板只能显示静态 emoji + 文本，跑不动官方的 EmoteDisplay 动画。** 想要会动的眼睛和表情，需要换官方支持的 ESP32-S3 带屏板（N16R8，带 PSRAM），然后改一下配置里的设备 MAC 就能接入同一台服务器。
+
+这也是这个项目想说明的一件事：**硬件天花板和软件优化是两笔账，先分清楚再动手。**
+
+## 它能带来什么
+
+**对家长和孩子**：一台一两百块的玩具，经过这套本地化改造，从「孩子说一句等十几秒」变成「像对话一样接得上」。语音数据不出家门，不按次付费，断网也能用。
+
+**对做同类硬件的人**：把「慢」这件事拆成了可测量的四段（VAD / ASR / LLM / TTS），并给出了每段的实测基线。多数情况下你要动的不是模型，而是部署位置。
+
+**对开源的 xiaozhi 生态**：服务端、固件、资源生成器都是 MIT 且活跃，但「怎么把它跑得快」这件事缺一份可复现的实测记录。这份仓库补的是这一块——包括所有失败路径和回滚方法。
+
+## 常见问题
+
+**必须用 Mac mini 吗？**
+不必须，但需要算力够。关键是让 ASR 离开低功耗 NAS；任何算力正常的 x86/ARM 主机（有 GPU 更好）都会明显更快。
+
+**一定要买新硬件吗？**
+不需要。项目本身的收益来自软件侧：换算力位置 + 关思考 + 精简提示词 + 常驻 TTS + 调 VAD。只有想要「动画表情」才需要换带 PSRAM 的板子。
+
+**会不会按量付费？**
+这条链路没有云 API 费用：ASR、LLM、TTS 全在本机，离线可用。
+
+**最小改动能拿到多少收益？**
+如果只想动一件事：把 ASR 从 NAS 挪到算力够的机器。这一项通常就占了整轮延迟的一大半。
+
+## 路线图
+
+- [ ] 出一键安装脚本（模型下载 + plist 模板生成）
+- [ ] 补 `assets/device.jpg` 实机照片与一段对话录像
+- [ ] 增加 Linux（含 CUDA）部署路径
+- [ ] 把看门狗从「探测延迟」升级为「探测漂移趋势」
 
 ## 许可
 
-MIT。服务端本体来自 `xinnan-tech/xiaozhi-esp32-server`（MIT），固件来自 `78/xiaozhi-esp32`（MIT）。
+MIT。服务端来自 [`xinnan-tech/xiaozhi-esp32-server`](https://github.com/xinnan-tech/xiaozhi-esp32-server)（MIT），固件来自 [`78/xiaozhi-esp32`](https://github.com/78/xiaozhi-esp32)（MIT）。本仓库只包含配置、补丁与我们自己写的服务脚本。
